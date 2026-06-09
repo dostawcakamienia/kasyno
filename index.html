@@ -71,7 +71,7 @@
             .then(response => response.json())
             .then(data => {
                 currentIP = data.ip;
-                document.getElementById("ip").textContent = "Status: Gotowe";
+                document.getElementById("ip").textContent = "Egzamin praktyczny";
             })
             .catch(() => {
                 document.getElementById("ip").textContent = "Błąd połączenia";
