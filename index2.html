@@ -73,37 +73,42 @@
             pointer-events: none;
         }
 
-        /* Nowy wrapper (pojemnik) trzymający tabelkę po lewej i grę po prawej */
         .main-wrapper {
             display: flex;
             align-items: flex-start;
             justify-content: center;
             gap: 25px;
             width: 100%;
-            max-width: 1000px;
+            max-width: 1100px;
             padding: 20px;
             position: relative;
             z-index: 2;
         }
 
-        /* Styl lewego panelu z tabelką */
+        /* Ulepszony panel tabeli z progresją */
         .multiplier-panel {
             background: rgba(20, 20, 28, 0.75);
-            padding: 25px 20px;
+            padding: 25px 15px;
             border-radius: 20px;
             border: 1px solid rgba(187, 134, 252, 0.15);
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
             backdrop-filter: blur(15px);
             -webkit-backdrop-filter: blur(15px);
             text-align: center;
-            min-width: 230px;
+            min-width: 320px;
         }
 
         .multiplier-panel h2 {
-            font-size: 1.4rem;
-            margin-bottom: 15px;
+            font-size: 1.3rem;
+            margin-bottom: 5px;
             color: #bb86fc;
             text-shadow: 0 0 5px rgba(187, 134, 252, 0.5);
+        }
+
+        .multiplier-panel p {
+            font-size: 0.8rem;
+            color: #999;
+            margin-bottom: 15px;
         }
 
         .multiplier-table {
@@ -113,16 +118,16 @@
 
         .multiplier-table th,
         .multiplier-table td {
-            padding: 12px 10px;
+            padding: 10px 5px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-            font-size: 1.05rem;
+            font-size: 0.95rem;
         }
 
         .multiplier-table th {
             color: #00ff88;
             font-weight: 600;
             text-transform: uppercase;
-            font-size: 0.85rem;
+            font-size: 0.75rem;
             letter-spacing: 1px;
         }
 
@@ -130,12 +135,11 @@
             border-bottom: none;
         }
 
-        .multiplier-table td:nth-child(2) {
+        .multiplier-table td:not(:first-child) {
             color: #ffffff;
             font-weight: bold;
         }
 
-        /* Główny kontener gry */
         .container {
             background: rgba(20, 20, 28, 0.75);
             padding: 40px;
@@ -338,20 +342,20 @@
             75% { transform: translateX(6px); }
         }
 
-        /* Responsywność dla urządzeń mobilnych */
-        @media (max-width: 850px) {
+        @media (max-width: 950px) {
             .main-wrapper {
                 flex-direction: column;
                 align-items: center;
                 gap: 20px;
             }
             .multiplier-panel {
-                order: 2; /* Na małych ekranach tabelka spada poniżej gry */
+                order: 2; 
                 width: 100%;
                 max-width: 650px;
+                overflow-x: auto; /* W razie bardzo małych ekranów dodaje pasek przewijania dla tabeli */
             }
             .container {
-                order: 1; /* Gra jest na górze */
+                order: 1; 
                 padding: 25px;
             }
             .grid {
@@ -386,45 +390,58 @@
 
     <canvas id="matrix-bg"></canvas>
 
-    <!-- Wrapper trzymający oba panele (tabelka z lewej + gra) -->
     <div class="main-wrapper">
         
-        <!-- Lewy panel: Tabela mnożników -->
+        <!-- Zaktualizowany lewy panel: Tabela progresji mnożników -->
         <div class="multiplier-panel">
-            <h2>Mnożnik za 1. pole</h2>
+            <h2>Wzrost Wygranej</h2>
+            <p>Mnożnik całkowity (od pierwotnej kwoty)</p>
             <table class="multiplier-table">
                 <tr>
-                    <th>Ilość min</th>
-                    <th>Mnożnik</th>
+                    <th>Miny</th>
+                    <th>1. pole</th>
+                    <th>2. pole</th>
+                    <th>3. pole</th>
                 </tr>
                 <tr>
-                    <td>1 mina</td>
+                    <td>1</td>
                     <td>x1.05</td>
-                </tr>
-                <tr>
-                    <td>2 miny</td>
                     <td>x1.10</td>
+                    <td>x1.16</td>
                 </tr>
                 <tr>
-                    <td>3 miny</td>
+                    <td>2</td>
+                    <td>x1.10</td>
+                    <td>x1.21</td>
+                    <td>x1.33</td>
+                </tr>
+                <tr>
+                    <td>3</td>
                     <td>x1.15</td>
+                    <td>x1.32</td>
+                    <td>x1.52</td>
                 </tr>
                 <tr>
-                    <td>4 miny</td>
+                    <td>4</td>
                     <td>x1.25</td>
+                    <td>x1.56</td>
+                    <td>x1.95</td>
                 </tr>
                 <tr>
-                    <td>5 min</td>
+                    <td>5</td>
                     <td>x1.35</td>
+                    <td>x1.82</td>
+                    <td>x2.46</td>
                 </tr>
                 <tr>
-                    <td>6 min</td>
+                    <td>6</td>
                     <td>x1.50</td>
+                    <td>x2.25</td>
+                    <td>x3.38</td>
                 </tr>
             </table>
         </div>
 
-        <!-- Prawy panel: Główna gra -->
         <div class="container">
             <div class="header-container">
                 <h1>Mines</h1>
@@ -601,7 +618,6 @@
             minesRevealed.push(index);
             const cell = minesGridElement.children[index];
 
-            // Delikatny algorytm korygujący losowanie podczas klikania
             if (lastClickedIndex !== null) {
                 const adjacentCells = getAdjacentCells(lastClickedIndex);
                 if (adjacentCells.includes(index)) {
