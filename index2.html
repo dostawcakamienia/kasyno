@@ -12,22 +12,17 @@
                 var firstSheetName = workbook.SheetNames[0];
                 var worksheet = workbook.Sheets[firstSheetName];
 
-                // Convert sheet to JSON to filter blank rows
                 var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-                // Filter out blank rows (rows where all cells are empty, null, or undefined)
                 var filteredData = jsonData.filter(row => row.some(filledCell));
 
-                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
                 var headerRowIndex = filteredData.findIndex((row, index) =>
                   row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
                 );
-                // Fallback
                 if (headerRowIndex === -1 || headerRowIndex > 25) {
                   headerRowIndex = 0;
                 }
 
-                // Convert filtered JSON back to CSV
-                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); 
                 csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
                 return csv;
             } catch (e) {
@@ -85,59 +80,75 @@
             z-index: 2;
         }
 
-        /* Ulepszony panel tabeli z progresją */
+        /* Nowy, kompaktowy panel dynamiczny */
         .multiplier-panel {
             background: rgba(20, 20, 28, 0.75);
-            padding: 25px 15px;
+            padding: 20px;
             border-radius: 20px;
             border: 1px solid rgba(187, 134, 252, 0.15);
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
             backdrop-filter: blur(15px);
             -webkit-backdrop-filter: blur(15px);
             text-align: center;
-            min-width: 320px;
+            min-width: 250px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
         }
 
         .multiplier-panel h2 {
-            font-size: 1.3rem;
-            margin-bottom: 5px;
+            font-size: 1.2rem;
             color: #bb86fc;
             text-shadow: 0 0 5px rgba(187, 134, 252, 0.5);
+            margin-bottom: 5px;
         }
 
-        .multiplier-panel p {
-            font-size: 0.8rem;
-            color: #999;
-            margin-bottom: 15px;
+        .panel-info {
+            font-size: 0.85rem;
+            color: #aaa;
+            display: flex;
+            justify-content: space-between;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .multiplier-table {
-            width: 100%;
-            border-collapse: collapse;
+        .steps-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
 
-        .multiplier-table th,
-        .multiplier-table td {
-            padding: 10px 5px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-            font-size: 0.95rem;
+        .step-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(187, 134, 252, 0.2);
+            transition: transform 0.2s;
         }
 
-        .multiplier-table th {
-            color: #00ff88;
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            letter-spacing: 1px;
+        .step-item:hover {
+            transform: translateX(5px);
+            background: rgba(187, 134, 252, 0.1);
         }
 
-        .multiplier-table tr:last-child td {
-            border-bottom: none;
+        .step-label {
+            font-size: 0.9rem;
+            color: #ccc;
         }
 
-        .multiplier-table td:not(:first-child) {
-            color: #ffffff;
+        .step-value {
+            font-size: 1.1rem;
             font-weight: bold;
+            color: #00ff88;
+        }
+
+        .step-dots {
+            color: #777;
+            font-size: 0.8rem;
+            margin-top: 5px;
         }
 
         .container {
@@ -352,7 +363,6 @@
                 order: 2; 
                 width: 100%;
                 max-width: 650px;
-                overflow-x: auto; /* W razie bardzo małych ekranów dodaje pasek przewijania dla tabeli */
             }
             .container {
                 order: 1; 
@@ -392,54 +402,18 @@
 
     <div class="main-wrapper">
         
-        <!-- Zaktualizowany lewy panel: Tabela progresji mnożników -->
+        <!-- Nowy, inteligentny panel progresji -->
         <div class="multiplier-panel">
-            <h2>Wzrost Wygranej</h2>
-            <p>Mnożnik całkowity (od pierwotnej kwoty)</p>
-            <table class="multiplier-table">
-                <tr>
-                    <th>Miny</th>
-                    <th>1. pole</th>
-                    <th>2. pole</th>
-                    <th>3. pole</th>
-                </tr>
-                <tr>
-                    <td>1</td>
-                    <td>x1.05</td>
-                    <td>x1.10</td>
-                    <td>x1.16</td>
-                </tr>
-                <tr>
-                    <td>2</td>
-                    <td>x1.10</td>
-                    <td>x1.21</td>
-                    <td>x1.33</td>
-                </tr>
-                <tr>
-                    <td>3</td>
-                    <td>x1.15</td>
-                    <td>x1.32</td>
-                    <td>x1.52</td>
-                </tr>
-                <tr>
-                    <td>4</td>
-                    <td>x1.25</td>
-                    <td>x1.56</td>
-                    <td>x1.95</td>
-                </tr>
-                <tr>
-                    <td>5</td>
-                    <td>x1.35</td>
-                    <td>x1.82</td>
-                    <td>x2.46</td>
-                </tr>
-                <tr>
-                    <td>6</td>
-                    <td>x1.50</td>
-                    <td>x2.25</td>
-                    <td>x3.38</td>
-                </tr>
-            </table>
+            <div>
+                <h2>Potencjał Wygranej</h2>
+            </div>
+            <div class="panel-info">
+                <span>Wybrane miny: <b id="preview-mines" style="color:white">1</b></span>
+                <span>Odkryto: <b id="preview-revealed" style="color:#bb86fc">0</b>/<span id="preview-max">24</span></span>
+            </div>
+            <div class="steps-container" id="dynamic-steps">
+                <!-- Kroki będą generowane przez JavaScript -->
+            </div>
         </div>
 
         <div class="container">
@@ -466,7 +440,7 @@
             </div>
             
             <div class="grid" id="minesGrid"></div>
-            <div class="message" id="minesMessage"></div>
+            <div class="message" id="minesMessage">Gotowy do gry? Ustaw zakład.</div>
         </div>
         
     </div>
@@ -529,6 +503,52 @@
         const minesGridElement = document.getElementById('minesGrid');
         const minesMessageElement = document.getElementById('minesMessage');
 
+        // Funkcja uaktualniająca dynamiczny panel
+        function updateDynamicPanel() {
+            const selectedMines = parseInt(mineCountInput.value) || 1;
+            const maxSafeClicks = 25 - selectedMines;
+            const currentClicks = minesGameActive ? minesRevealed.length : 0;
+            const remainingClicks = maxSafeClicks - currentClicks;
+            
+            document.getElementById('preview-mines').textContent = selectedMines;
+            document.getElementById('preview-revealed').textContent = currentClicks;
+            document.getElementById('preview-max').textContent = maxSafeClicks;
+
+            let baseMult = getMinesMultiplierBase(selectedMines);
+            let currentMult = minesGameActive ? minesMultiplier : 1;
+            
+            const stepsContainer = document.getElementById('dynamic-steps');
+            let html = '';
+
+            if (remainingClicks === 0) {
+                html = '<div class="step-dots" style="color:#00ff88; font-size:1rem; font-weight:bold;">Osiągnięto maksimum wygranej!</div>';
+            } else {
+                // Pokazujemy maksymalnie 3 kolejne kroki
+                const stepsToShow = Math.min(3, remainingClicks);
+                
+                for (let i = 1; i <= stepsToShow; i++) {
+                    let nextMult = currentMult * Math.pow(baseMult, i);
+                    let label = (currentClicks === 0) ? `Za ${i}. pole` : `+${i} pole (${currentClicks + i}/${maxSafeClicks})`;
+                    
+                    html += `
+                        <div class="step-item">
+                            <span class="step-label">${label}</span>
+                            <span class="step-value">x${nextMult.toFixed(2)}</span>
+                        </div>
+                    `;
+                }
+
+                if (remainingClicks > stepsToShow) {
+                    html += `<div class="step-dots">...oraz kolejne aż do x${(currentMult * Math.pow(baseMult, remainingClicks)).toFixed(2)} na końcu!</div>`;
+                }
+            }
+
+            stepsContainer.innerHTML = html;
+        }
+
+        // Podpinamy nasłuchiwanie zmiany ilości min żeby aktualizować panel na bieżąco
+        mineCountInput.addEventListener('change', updateDynamicPanel);
+
         function generateMines(count) {
             mines = [];
             while (mines.length < count) {
@@ -548,8 +568,9 @@
             }
         }
 
-        function getMinesMultiplierBase() {
-            switch (parseInt(mineCount)) {
+        function getMinesMultiplierBase(count = null) {
+            const m = count !== null ? count : parseInt(mineCountInput.value);
+            switch (m) {
                 case 1: return 1.05;
                 case 2: return 1.10;
                 case 3: return 1.15;
@@ -599,16 +620,17 @@
             minesStartGameButton.disabled = true;
             minesAllInButton.disabled = true;
             minesCashOutButton.style.display = 'inline-block';
-            minesCashOutAmountElement.textContent = (minesBetAmount * minesMultiplier).toFixed(2);
-            minesMessageElement.textContent = 'Odkrywaj pola, uważaj na miny!';
             minesMultiplier = 1;
+            minesCashOutAmountElement.textContent = (minesBetAmount * minesMultiplier).toFixed(2);
+            minesMessageElement.textContent = 'Powodzenia! Odkrywaj pola.';
             lastClickedIndex = null;
             clickSound.play();
+            updateDynamicPanel(); // Reset panelu na start
         }
 
         function allIn() {
             if (minesGameActive) return;
-            minesBetAmountInput.value = balance;
+            minesBetAmountInput.value = balance.toFixed(2);
             clickSound.play();
         }
 
@@ -644,13 +666,20 @@
                     }
                 });
                 loseSound.play();
+                updateDynamicPanel(); // Update po przegranej
             } else {
                 cell.classList.add('safe');
                 cell.textContent = '💎';
                 minesMultiplier *= getMinesMultiplierBase();
                 minesCashOutAmountElement.textContent = (minesBetAmount * minesMultiplier).toFixed(2);
-                minesMessageElement.textContent = `Aktualny mnożnik: ${minesMultiplier.toFixed(2)}x`;
+                minesMessageElement.textContent = `Wyśmienicie! Mnożnik: ${minesMultiplier.toFixed(2)}x`;
                 winSound.play();
+                updateDynamicPanel(); // Update pokazujący kolejne kroki
+                
+                // Automatyczna wygrana jeśli odkryto wszystkie możliwe pola
+                if (minesRevealed.length === (25 - mineCount)) {
+                    minesCashOut();
+                }
             }
 
             lastClickedIndex = index;
@@ -666,16 +695,19 @@
             minesStartGameButton.disabled = false;
             minesAllInButton.disabled = false;
             minesCashOutButton.style.display = 'none';
-            minesMessageElement.textContent = `Wypłaciłeś ${winnings.toFixed(2)} PLN!`;
+            minesMessageElement.textContent = `Zakończyłeś! Wypłacono ${winnings.toFixed(2)} PLN!`;
             cashOutSound.play();
+            updateDynamicPanel();
         }
 
         minesStartGameButton.addEventListener('click', startMinesGame);
         minesAllInButton.addEventListener('click', allIn);
         minesCashOutButton.addEventListener('click', minesCashOut);
 
+        // Inicjalizacja gry i panelu po wczytaniu strony
         updateBalance();
         createMinesGrid();
+        updateDynamicPanel();
     </script>
 </body>
 </html>
