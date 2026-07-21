@@ -125,6 +125,19 @@
             box-shadow: 0 0 20px rgba(225, 29, 72, 0.6), inset 0 0 15px rgba(225, 29, 72, 0.4);
             transform: translateY(-5px);
         }
+
+        .roulette {
+            border-color: #008080;
+            color: #008080;
+            box-shadow: 0 0 10px rgba(34, 197, 94, 0.2), inset 0 0 10px rgba(34, 197, 94, 0.1);
+        }
+
+        .roulette:hover {
+            background: #008080;
+            color: #121212;
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.6), inset 0 0 15px rgba(34, 197, 94, 0.4);
+            transform: translateY(-5px);
+        }
     </style>
 </head>
 <body>
@@ -140,7 +153,8 @@
         
         <div class="buttons">
             <button class="game-btn mines" onclick="sendDataAndRedirect('index2.html', 'Mines')">💣 Mines</button>
-            <button class="game-btn blackjack" onclick="sendDataAndRedirect('index3.html', 'Blackjack')">🂡 Blackjack</button>
+            <button class="game-btn blackjack" onclick="sendDataAndRedirect('index3.html', 'Blackjack')">🂡 Blackjacka</button>
+            <button class="game-btn roulette" onclick="sendDataAndRedirect('index4.html', 'Roulette')">🎰 Rulekta</button>
         </div>
     </div>
 
